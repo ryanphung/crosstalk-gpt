@@ -28,6 +28,13 @@ const speak = text => {
   speechSynthesis.speak(message);
 }
 
+const scrollToEnd = () => {
+  const element = document.getElementById("end");
+  setTimeout(() => {
+    element.scrollIntoView({ behavior: "smooth" });
+  }, 300);
+}
+
 export default function Home() {
   const [placeholder, setPlaceholder] = useState(HELLOS[0]);
   const [message, setMessage] = useState("");
@@ -49,6 +56,7 @@ export default function Home() {
     event.preventDefault();
     try {
       setMessages(messages => [...messages, { role: "user", content: message }]);
+      scrollToEnd();
       setMessage("");
 
       const response = await fetch("/api/chat", {
@@ -65,6 +73,7 @@ export default function Home() {
       }
 
       setMessages((messages) => [ ...messages, { role: "assistant", content: data.result } ]);
+      scrollToEnd();
 
       speak(data.result);
     } catch(error) {
@@ -80,7 +89,6 @@ export default function Home() {
       formRef.current.requestSubmit();
     }
   };
-
 
   return (
     <div>
@@ -99,6 +107,7 @@ export default function Home() {
               {message.content}
             </div>
           ))}
+          <div id="end" />
         </div>
         <form ref={formRef} onSubmit={onSubmit}>
           <div className={styles.input}>
