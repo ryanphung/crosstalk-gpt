@@ -1,0 +1,112 @@
+@font-face {
+  font-family: "ColfaxAI";
+  src: url(https://cdn.openai.com/API/fonts/ColfaxAIRegular.woff2)
+      format("woff2"),
+    url(https://cdn.openai.com/API/fonts/ColfaxAIRegular.woff) format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: "ColfaxAI";
+  src: url(https://cdn.openai.com/API/fonts/ColfaxAIBold.woff2) format("woff2"),
+    url(https://cdn.openai.com/API/fonts/ColfaxAIBold.woff) format("woff");
+  font-weight: bold;
+  font-style: normal;
+}
+.main,
+.main input, .main textarea {
+  font-size: 16px;
+  line-height: 24px;
+  color: #353740;
+  font-family: "ColfaxAI", Helvetica, sans-serif;
+}
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100dvh;
+  width: 640px;
+  max-width: 100dvw;
+  margin: 0 auto;
+}
+.main h3 {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: bold;
+  color: #353740;
+  margin: 16px 0;
+  text-align: center;
+}
+.main form {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+.main textarea {
+  padding: 12px 16px;
+  border: 1px solid #10a37f;
+  border-radius: 4px;
+  outline-color: #10a37f;
+  flex: 1;
+  min-width: 0;
+}
+.main ::placeholder {
+  color: #8e8ea0;
+  opacity: 1;
+}
+.main .input {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  padding: 16px;
+}
+
+@media (min-width:600px) {
+  .main .input {
+    padding: 40px;
+  }
+}
+
+.main input[type="submit"] {
+  padding: 12px 20px;
+  color: #fff;
+  background-color: #10a37f;
+  border: none;
+  border-radius: 4px;
+  text-align: center;
+  cursor: pointer;
+}
+.main .result {
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: auto;
+  padding: 16px;
+}
+
+@media (min-width:600px) {
+  .main .result {
+    padding: 40px;
+  }
+}
+
+.main .result .user,
+.main .result .assistant {
+  padding: 12px 16px;
+  border-radius: 16px;
+  max-width: 80%;
+}
+
+.main .result .user {
+  background-color: #10a37f;
+  color: #fff;
+  align-self: flex-start;
+}
+
+.main .result .assistant {
+  background-color: #f2f2f2;
+  color: #353740;
+  align-self: flex-end;
+}
