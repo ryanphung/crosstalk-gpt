@@ -1,8 +1,22 @@
 import Head from "next/head";
+import { useRouter } from "next/router";
 import { useEffect, useState, useRef } from "react";
-// Create a new SpeechSynthesisUtterance object with the Chinese sentence you want to speak
 
 import styles from "./index.module.css";
+
+const I_WILL_REPLY = {
+  zh: "我会用中文回答",
+  en: "I will reply in English",
+  fr: "Je répondrai en français",
+  de: "Ich werde auf Deutsch antworten",
+  it: "Risponderò in italiano",
+  ja: "私は日本語で返事します",
+  ko: "나는 한국어로 답할 것이다",
+  pt: "Eu vou responder em português",
+  ru: "Я отвечу по-русски",
+  es: "Responderé en español",
+  vi: "Tôi sẽ trả lời bằng tiếng Việt",
+};
 
 const HELLOS = [
   "Hello",
@@ -22,9 +36,25 @@ const HELLOS = [
   "Chào bạn",
 ];
 
-const speak = text => {
+const FULL_LANGUAGES = {
+  zh: "zh-CN",
+  en: "en-GB",
+  fr: "fr-CA",
+  de: "de-DE",
+  it: "it-IT",
+  ja: "ja-JP",
+  ko: "ko-KR",
+  pt: "pt-PT",
+  ru: "ru-RU",
+  es: "es-ES",
+  vi: "vi-VN",
+}
+
+const LANGUAGES = Object.keys(FULL_LANGUAGES);
+
+const speak = ({ text, lang }) => {
   const message = new SpeechSynthesisUtterance(text);
-  message.lang = 'zh-CN';
+  message.lang = FULL_LANGUAGES[lang];
   speechSynthesis.speak(message);
 }
 
@@ -36,6 +66,11 @@ const scrollToEnd = () => {
 }
 
 export default function Home() {
+  const router = useRouter();
+  const lang = LANGUAGES.includes(router.query.lang) ? router.query.lang : "en";
+
+  const [chatId, setChatId] = useState();
+
   const [placeholder, setPlaceholder] = useState(HELLOS[0]);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
@@ -64,7 +99,7 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ chatId, lang, message }),
       });
 
       const data = await response.json();
@@ -72,10 +107,13 @@ export default function Home() {
         throw data.error || new Error(`Request failed with status ${response.status}`);
       }
 
+      if (data.chatId)
+        setChatId(data.chatId);
+
       setMessages((messages) => [ ...messages, { role: "assistant", content: data.result } ]);
       scrollToEnd();
 
-      speak(data.result);
+      speak({ text: data.result, lang });
     } catch(error) {
       // Consider implementing your own error handling logic here
       console.error(error);
@@ -100,7 +138,7 @@ export default function Home() {
       <main className={styles.main}>
         <div className={styles.result}>
           <h3>
-            Talk to me<div style={{ color: "#10a37f" }}>我会用中文回答</div>
+            Talk to me<div style={{ color: "#10a37f" }}>{I_WILL_REPLY[lang]}</div>
           </h3>
           {messages.map((message, index) => (
             <div key={index} className={styles[message.role]}>
