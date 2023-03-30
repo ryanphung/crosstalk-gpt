@@ -157,7 +157,11 @@ export default function Home() {
             <div style={{ color: "#10a37f" }}>{I_WILL_REPLY[lang]}</div>
           </h3>
           {messages.map((message, index) => (
-            <div key={index} className={styles[message.role]}>
+            <div
+              key={index}
+              id={index === messages.length - 1 ? "end" : ""}
+              className={styles[message.role]}
+            >
               {message.content}
               {message.role === "assistant" && (
                 <svg
@@ -173,20 +177,17 @@ export default function Home() {
               )}
             </div>
           ))}
-          <div id="end" />
         </div>
         <form ref={formRef} onSubmit={onSubmit}>
-          <div className={styles.input}>
-            <textarea
-              name="message"
-              placeholder={placeholder}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={1}
-              onKeyDown={onKeyDown}
-            />
-            <input type="submit" value="Send" />
-          </div>
+          <textarea
+            name="message"
+            placeholder={placeholder}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={1}
+            onKeyDown={onKeyDown}
+          />
+          <input type="submit" value="Send" />
         </form>
       </main>
     </div>
