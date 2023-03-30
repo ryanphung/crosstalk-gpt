@@ -99,13 +99,26 @@
   max-width: 80%;
 }
 
-.main .result .user {
+.main .result .assistant {
   background-color: #10a37f;
   color: #fff;
   align-self: flex-start;
 }
 
-.main .result .assistant {
+.main .result .speak {
+  fill: #ddd;
+  transition: fill 0.2s ease-in-out;
+  position: relative;
+  top: 2px;
+  margin-left: 4px;
+  cursor: pointer;
+}
+
+.main .result .speak:hover {
+  fill: #fff;
+}
+
+.main .result .user {
   background-color: #f2f2f2;
   color: #353740;
   align-self: flex-end;

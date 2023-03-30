@@ -48,7 +48,7 @@ const FULL_LANGUAGES = {
   ru: "ru-RU",
   es: "es-ES",
   vi: "vi-VN",
-}
+};
 
 const LANGUAGES = Object.keys(FULL_LANGUAGES);
 
@@ -56,14 +56,14 @@ const speak = ({ text, lang }) => {
   const message = new SpeechSynthesisUtterance(text);
   message.lang = FULL_LANGUAGES[lang];
   speechSynthesis.speak(message);
-}
+};
 
 const scrollToEnd = () => {
   const element = document.getElementById("end");
   setTimeout(() => {
     element.scrollIntoView({ behavior: "smooth" });
   }, 300);
-}
+};
 
 export default function Home() {
   const router = useRouter();
@@ -87,10 +87,13 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  const onSubmit = async event => {
+  const onSubmit = async (event) => {
     event.preventDefault();
     try {
-      setMessages(messages => [...messages, { role: "user", content: message }]);
+      setMessages((messages) => [
+        ...messages,
+        { role: "user", content: message },
+      ]);
       scrollToEnd();
       setMessage("");
 
@@ -104,27 +107,39 @@ export default function Home() {
 
       const data = await response.json();
       if (response.status !== 200) {
-        throw data.error || new Error(`Request failed with status ${response.status}`);
+        throw (
+          data.error ||
+          new Error(`Request failed with status ${response.status}`)
+        );
       }
 
-      if (data.chatId)
-        setChatId(data.chatId);
+      if (data.chatId) setChatId(data.chatId);
 
-      setMessages((messages) => [ ...messages, { role: "assistant", content: data.result } ]);
+      setMessages((messages) => [
+        ...messages,
+        { role: "assistant", content: data.result },
+      ]);
       scrollToEnd();
 
       speak({ text: data.result, lang });
-    } catch(error) {
+    } catch (error) {
       // Consider implementing your own error handling logic here
       console.error(error);
       alert(error.message);
     }
-  }
+  };
 
   const onKeyDown = (e) => {
     if (e.keyCode == 13 && e.shiftKey == false) {
       e.preventDefault();
       formRef.current.requestSubmit();
+    }
+  };
+
+  const onSpeakClick = (e) => {
+    const text = e.target.parentElement.innerText;
+    if (text) {
+      speak({ text, lang });
     }
   };
 
@@ -138,11 +153,24 @@ export default function Home() {
       <main className={styles.main}>
         <div className={styles.result}>
           <h3>
-            Talk to me<div style={{ color: "#10a37f" }}>{I_WILL_REPLY[lang]}</div>
+            Talk to me
+            <div style={{ color: "#10a37f" }}>{I_WILL_REPLY[lang]}</div>
           </h3>
           {messages.map((message, index) => (
             <div key={index} className={styles[message.role]}>
               {message.content}
+              {message.role === "assistant" && (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  className={styles.speak}
+                  onClick={onSpeakClick}
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              )}
             </div>
           ))}
           <div id="end" />
