@@ -28,12 +28,6 @@
   width: 100dvw;
   max-width: 100dvw;
   overflow: auto;
-  padding-bottom: 66px;
-}
-@media (min-width:600px) {
-  .main {
-    padding-bottom: 90px;
-  }
 }
 
 .main h3 {
@@ -91,6 +85,7 @@
   flex-direction: column;
   gap: 12px;
   padding: 16px;
+  padding-bottom: 82px;
   width: 640px;
   max-width: 100%;
 }
@@ -98,6 +93,7 @@
 @media (min-width:600px) {
   .main .result {
     padding: 40px;
+    padding-bottom: 130px;
   }
 }
 

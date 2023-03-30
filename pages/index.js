@@ -59,9 +59,9 @@ const speak = ({ text, lang }) => {
 };
 
 const scrollToEnd = () => {
-  const element = document.getElementById("end");
+  const element = document.getElementById("result");
   setTimeout(() => {
-    element.scrollIntoView({ behavior: "smooth" });
+    element.scrollIntoView({ behavior: "smooth", block: "end" });
   }, 300);
 };
 
@@ -151,17 +151,13 @@ export default function Home() {
       </Head>
 
       <main className={styles.main}>
-        <div className={styles.result}>
+        <div id="result" className={styles.result}>
           <h3>
             Talk to me
             <div style={{ color: "#10a37f" }}>{I_WILL_REPLY[lang]}</div>
           </h3>
           {messages.map((message, index) => (
-            <div
-              key={index}
-              id={index === messages.length - 1 ? "end" : ""}
-              className={styles[message.role]}
-            >
+            <div key={index} className={styles[message.role]}>
               {message.content}
               {message.role === "assistant" && (
                 <svg
