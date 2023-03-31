@@ -113,6 +113,8 @@ export default function Home() {
         );
       }
 
+      if (data.character) console.log(`Character: ${data.character}`);
+
       if (data.chatId) setChatId(data.chatId);
 
       setMessages((messages) => [

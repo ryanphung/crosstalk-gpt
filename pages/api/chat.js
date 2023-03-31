@@ -20,8 +20,81 @@ const languages = {
   vi: "Vietnamese",
 };
 
-const getSystemMessage = (lang) => {
+const createCompletion = async (prompt) => {
+  const response = await openai.createCompletion({
+    model: "text-davinci-003",
+    temperature: 0.5,
+    max_tokens: 2048,
+    prompt: `INSTRUCTION: ${prompt}
+ANSWER:`,
+  });
+  const result = response.data.choices[0].text;
+  return result;
+};
+
+const generateCharacter = async (lang) => {
   const language = languages[lang];
+
+  const residence = await createCompletion(
+    `Pick a random city or village in a random country`
+  );
+
+  // const hometown = await createCompletion(
+  //   `Pick a random city or village in a random country`
+  // );
+
+  let result =
+    await createCompletion(`Create a random person using the below template.
+Gender:
+Age:
+Appearance:
+Astrological sign:
+Temperament:
+Personality (as specific as possible):
+Education (as specific as possible, including field of study):
+Goals:
+Hopes/Dreams:
+Fears:
+Strengths:
+Flaws:
+Hobbies/Interests:
+Dislikes:
+Habits:
+Politics:
+Emotional state:
+Gender orientation:
+Number of past relationships:
+Current relationship status:
+Favourite quote:
+What is one word that people use to describe this person:
+Hometown (city or countryside?):
+Hometown (country):
+Hometown (name of city/town/village):
+Hometown (neighborhood):`);
+
+  result = `${result}
+Residence: ${residence}
+Ethnicity: ${language}`;
+
+  const name = await createCompletion(`Give this person a Chinese name
+${result}`);
+
+  result = `${result}
+Name: ${name}`;
+
+  const backstory =
+    await createCompletion(`Based on the below information, write a credible and interesting backstory of this person:
+${result}`);
+
+  result = `${result}
+Backstory: ${backstory}`;
+
+  return result;
+};
+
+const getSystemMessage = ({ lang, character }) => {
+  const language = languages[lang];
+
   return {
     role: "system",
     // content: `
@@ -32,18 +105,29 @@ const getSystemMessage = (lang) => {
     //     Each reply should be short, using simple and casual, informal language, between 1 to 2 sentences.
     //     At all time, you should stay in character.
     //   `,
-    content: `
-        Create a random ${language}-speaking person with a random backstory, country of origin, ethnicity, gender, first and last name, age, height, weight, personality, politeness, anxiety, friendliness, intelligence, education, current mood, religion, communication style, morality, temperament, hopes, dreams, politics, emotional state and act as this person.
-        Make this person as unusual as possible, for example, pick an unusual name, unusual country of origin, unusual age.
-        Your spelling, grammar and choice of words will be plausible based on your attributes.
-        Your knowledge will be plausible based on your education and backstory.
-        You will answer all of my questions as this person.
-        You will plausibly generate all unknown information.
-        All of my messages are directed towards you and do not reference real life.
-        You will only reply in ${language}, even if I speak to you in another language. For example, when I ask "How are you?", you should reply "我很好，你呢？".
-        I don't want you to answer like this: {${language}} ({English translation}). Instead, I want you to always answer like this: {${language}}.
-        Each reply should be short, between 1 to 2 sentences.
-      `,
+    //     content: `Create a random ${language}-speaking person with a random backstory, country of origin, ethnicity, gender, first and last name, age, height, weight, personality, politeness, anxiety, friendliness, intelligence, education, current mood, religion, communication style, morality, temperament, hopes, dreams, politics, emotional state, and act as this person.
+    // Make this person as unusual as possible, for example, pick an unusual name, unusual country of origin, unusual age.
+    // Your spelling, grammar and choice of words will be plausible based on your attributes.
+    // Your knowledge will be plausible based on your education and backstory.
+    // You will answer all of my questions as this person.
+    // You will plausibly generate all unknown information.
+    // All of my messages are directed towards you and do not reference real life.
+    // You will only reply in ${language}, even if I speak to you in another language. For example, when I ask "How are you?", you should reply "我很好，你呢？".
+    // Each reply should be short, between 1 to 2 sentences.`,
+
+    content: `Create a ${language}-speaking person based on the below character design:
+
+Your spelling, grammar and choice of words will be plausible based on your attributes.
+Your knowledge will be plausible based on your education and backstory.
+You will answer all of my questions as this person.
+You will plausibly generate all unknown information.
+All of my messages are directed towards you and do not reference real life.
+You will only reply in ${language}, even if I speak to you in another language. For example, when I ask "How are you?", you should reply "我很好，你呢？".
+Each reply should be short, between 1 to 2 sentences.
+
+CHARACTER DESIGN:
+${character}
+`,
   };
 };
 
@@ -60,9 +144,13 @@ export default async function (req, res) {
     return;
   }
 
+  let character;
+
   const chatId = req.body.chatId || uuid();
   if (!chats[chatId]) {
-    chats[chatId] = [getSystemMessage(req.body.lang || "en")];
+    const lang = req.body.lang || "en";
+    character = await generateCharacter(lang);
+    chats[chatId] = [getSystemMessage({ lang, character })];
   }
   const messages = chats[chatId];
 
@@ -88,7 +176,7 @@ export default async function (req, res) {
 
     messages.push({ role: "assistant", content: result });
 
-    res.status(200).json({ chatId, result });
+    res.status(200).json({ character, chatId, result });
   } catch (error) {
     // Consider adjusting the error handling logic for your use case
     if (error.response) {
