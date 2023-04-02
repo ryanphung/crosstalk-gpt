@@ -54,7 +54,6 @@ const FULL_LANGUAGES = {
 const LANGUAGES = Object.keys(FULL_LANGUAGES);
 
 const speak = ({ text, lang }) => {
-  console.log(" 🚀  lang:", lang);
   const message = new SpeechSynthesisUtterance(text);
   message.lang = FULL_LANGUAGES[lang];
   speechSynthesis.speak(message);
@@ -66,6 +65,45 @@ const scrollToEnd = () => {
     element.scrollIntoView({ behavior: "smooth", block: "end" });
   }, 300);
 };
+
+function TypingIndicator() {
+  return (
+    <div className={styles.assistant}>
+      <div className={styles["typing-indicator"]}>
+        <div className={styles.dot}></div>
+        <div className={styles.dot}></div>
+        <div className={styles.dot}></div>
+      </div>
+    </div>
+  );
+}
+
+function Message({ message, lang }) {
+  const onSpeakClick = (e) => {
+    const text = e.target.parentElement.innerText;
+    if (text) {
+      speak({ text, lang });
+    }
+  };
+
+  return (
+    <div className={styles[message.role]}>
+      {message.content}
+      {message.role === "assistant" && (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          className={styles.speak}
+          onClick={onSpeakClick}
+        >
+          <path d="M8 5v14l11-7z" />
+        </svg>
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
   const router = useRouter();
@@ -84,9 +122,9 @@ export default function Home() {
     socketInitializer();
 
     return () => {
-      socketRef.current.disconnect();
+      if (socketRef.current) socketRef.current.disconnect();
     };
-  }, []);
+  }, [lang]);
 
   const socketInitializer = async () => {
     await fetch("/api/socket");
@@ -102,14 +140,10 @@ export default function Home() {
     });
 
     socketRef.current.on("reply", (data) => {
-      // const data = await response.json();
-      // if (response.status !== 200) {
-      //   throw (
-      //     data.error ||
-      //     new Error(`Request failed with status ${response.status}`)
-      //   );
-      // }
-      if (data.character) console.log(`Character: ${data.character}`);
+      if (data.character) {
+        console.log(`Character: ${data.character}`);
+        localStorage.setItem(`crosstalk-${data.chatId}`, data.character);
+      }
       if (data.chatId) setChatId(data.chatId);
       setMessages((messages) => [
         ...messages,
@@ -165,13 +199,6 @@ export default function Home() {
     }
   };
 
-  const onSpeakClick = (e) => {
-    const text = e.target.parentElement.innerText;
-    if (text) {
-      speak({ text, lang });
-    }
-  };
-
   return (
     <div>
       <Head>
@@ -186,22 +213,16 @@ export default function Home() {
             <div style={{ color: "#10a37f" }}>{I_WILL_REPLY[lang]}</div>
           </h3>
           {messages.map((message, index) => (
-            <div key={index} className={styles[message.role]}>
-              {message.content}
-              {message.role === "assistant" && (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  className={styles.speak}
-                  onClick={onSpeakClick}
-                >
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              )}
-            </div>
+            <Message key={index} message={message} lang={lang} />
           ))}
+          {messages.length === 1 && (
+            <div className={styles.notes}>
+              Looking for someone, please wait...
+            </div>
+          )}
+          {messages[messages.length - 1]?.role === "user" && (
+            <TypingIndicator />
+          )}
         </div>
         <form ref={formRef} onSubmit={onSubmit}>
           <textarea
