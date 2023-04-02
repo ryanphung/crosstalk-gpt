@@ -217,7 +217,7 @@ export default function Home() {
           ))}
           {messages.length === 1 && (
             <div className={styles.notes}>
-              Looking for someone, please wait...
+              Connecting you to someone, please wait...
             </div>
           )}
           {messages[messages.length - 1]?.role === "user" && (
