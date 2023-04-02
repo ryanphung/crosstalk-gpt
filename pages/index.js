@@ -1,5 +1,6 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
+import io from "socket.io-client";
 import { useEffect, useState, useRef } from "react";
 
 import styles from "./index.module.css";
@@ -53,6 +54,7 @@ const FULL_LANGUAGES = {
 const LANGUAGES = Object.keys(FULL_LANGUAGES);
 
 const speak = ({ text, lang }) => {
+  console.log(" 🚀  lang:", lang);
   const message = new SpeechSynthesisUtterance(text);
   message.lang = FULL_LANGUAGES[lang];
   speechSynthesis.speak(message);
@@ -68,6 +70,7 @@ const scrollToEnd = () => {
 export default function Home() {
   const router = useRouter();
   const lang = LANGUAGES.includes(router.query.lang) ? router.query.lang : "en";
+  const socketRef = useRef(null);
 
   const [chatId, setChatId] = useState();
 
@@ -76,6 +79,46 @@ export default function Home() {
   const [messages, setMessages] = useState([]);
 
   const formRef = useRef(null);
+
+  useEffect(() => {
+    socketInitializer();
+
+    return () => {
+      socketRef.current.disconnect();
+    };
+  }, []);
+
+  const socketInitializer = async () => {
+    await fetch("/api/socket");
+    socketRef.current = io();
+
+    socketRef.current.on("connect", () => {
+      console.log("connected");
+    });
+
+    socketRef.current.on("error", (response) => {
+      console.error(response);
+      alert(response.error.message);
+    });
+
+    socketRef.current.on("reply", (data) => {
+      // const data = await response.json();
+      // if (response.status !== 200) {
+      //   throw (
+      //     data.error ||
+      //     new Error(`Request failed with status ${response.status}`)
+      //   );
+      // }
+      if (data.character) console.log(`Character: ${data.character}`);
+      if (data.chatId) setChatId(data.chatId);
+      setMessages((messages) => [
+        ...messages,
+        { role: "assistant", content: data.result },
+      ]);
+      scrollToEnd();
+      speak({ text: data.result, lang });
+    });
+  };
 
   useEffect(() => {
     let count = 0;
@@ -97,33 +140,17 @@ export default function Home() {
       scrollToEnd();
       setMessage("");
 
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ chatId, lang, message }),
-      });
+      const data = { chatId, lang, message };
 
-      const data = await response.json();
-      if (response.status !== 200) {
-        throw (
-          data.error ||
-          new Error(`Request failed with status ${response.status}`)
-        );
-      }
+      socketRef.current.emit("chat", data);
 
-      if (data.character) console.log(`Character: ${data.character}`);
-
-      if (data.chatId) setChatId(data.chatId);
-
-      setMessages((messages) => [
-        ...messages,
-        { role: "assistant", content: data.result },
-      ]);
-      scrollToEnd();
-
-      speak({ text: data.result, lang });
+      // const response = await fetch("/api/chat", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({ chatId, lang, message }),
+      // });
     } catch (error) {
       // Consider implementing your own error handling logic here
       console.error(error);
