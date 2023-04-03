@@ -128,7 +128,7 @@ export default function Home() {
 
   const socketInitializer = async () => {
     await fetch("/api/socket");
-    socketRef.current = io();
+    socketRef.current = io("/", { transports: ["websocket"], upgrade: false });
 
     socketRef.current.on("connect", () => {
       console.log("connected");
